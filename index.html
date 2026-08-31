@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Factory Payroll App</title>
+  <!-- Ethers.js v6 CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; background: #f4f6f9; }
+    .card { background: #fff; padding: 20px; border-radius: 8px; max-width: 500px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    h2, h3 { color: #333; margin-top: 0; }
+    input, button { display: block; width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; }
+    button { background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    button:hover { background: #0056b3; }
+    .status { word-break: break-all; color: #555; background: #e9ecef; padding: 10px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+  <h2>🏭 Factory Payroll Dashboard</h2>
+
+  <!-- Wallet Connection -->
+  <div class="card">
+    <button id="connectBtn" onclick="connectWallet()">Connect MetaMask</button>
+    <p>Connected Address: <span id="userAddress">Not Connected</span></p>
+  </div>
+
+  <!-- Add Worker -->
+  <div class="card">
+    <h3>Add New Worker</h3>
+    <input type="text" id="workerAddr" placeholder="Worker Wallet Address (0x...)">
+    <input type="text" id="workerName" placeholder="Worker Name">
+    <input type="number" id="dailyRate" placeholder="Daily Rate (in ETH/USDC)">
+    <button onclick="addWorker()">Add Worker</button>
+  </div>
+
+  <!-- Execute Payroll -->
+  <div class="card">
+    <h3>Execute Payroll</h3>
+    <button onclick="payAllWorkers()" style="background: #28a745;">Pay All Workers Now</button>
+  </div>
+
+  <!-- Transaction Status -->
+  <div class="card">
+    <h3>Status Log</h3>
+    <div id="status" class="status">Ready</div>
+  </div>
+
+  <script>
+    // Replace with your deployed smart contract address:
+    const CONTRACT_ADDRESS = "0x...YOUR_DEPLOYED_CONTRACT_ADDRESS...";
+
+    // Smart Contract ABI
+    const CONTRACT_ABI = [
+      "function addWorker(address _workerAddress, string memory _name, uint256 _dailyRate) external",
+      "function payAllWorkers() external",
+      "function getContractBalance() external view returns (uint256)"
+    ];
+
+    let provider;
+    let signer;
+    let contract;
+
+    // 1. Connect MetaMask
+    async function connectWallet() {
+      if (window.ethereum) {
+        try {
+          provider = new ethers.BrowserProvider(window.ethereum);
+          signer = await provider.getSigner();
+          const address = await signer.getAddress();
+          
+          document.getElementById("userAddress").innerText = address;
+          document.getElementById("connectBtn").innerText = "Wallet Connected";
+          
+          contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+          updateStatus("Wallet connected successfully!");
+        } catch (error) {
+          updateStatus("Error connecting wallet: " + error.message);
+        }
+      } else {
+        alert("Please install MetaMask extension in your browser!");
+      }
+    }
+
+    // 2. Add New Worker
+    async function addWorker() {
+      if (!contract) return alert("Please connect wallet first!");
+      
+      const addr = document.getElementById("workerAddr").value;
+      const name = document.getElementById("workerName").value;
+      const rateInput = document.getElementById("dailyRate").value;
+
+      try {
+        const rateInWei = ethers.parseEther(rateInput);
+        updateStatus("Sending transaction to add worker...");
+        
+        const tx = await contract.addWorker(addr, name, rateInWei);
+        await tx.wait();
+        
+        updateStatus("Worker added successfully! Tx Hash: " + tx.hash);
+      } catch (error) {
+        updateStatus("Failed to add worker: " + error.message);
+      }
+    }
+
+    // 3. Batch Payment
+    async function payAllWorkers() {
+      if (!contract) return alert("Please connect wallet first!");
+
+      try {
+        updateStatus("Executing payroll transaction...");
+        const tx = await contract.payAllWorkers();
+        await tx.wait();
+        
+        updateStatus("All active workers paid successfully! Tx Hash: " + tx.hash);
+      } catch (error) {
+        updateStatus("Payment failed: " + error.message);
+      }
+    }
+
+    function updateStatus(msg) {
+      document.getElementById("status").innerText = msg;
+    }
+  </script>
+</body>
+</html>
