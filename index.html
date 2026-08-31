@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Factory Payroll Dashboard</title>
-  <!-- Ethers.js v5.7.2 CDN for Maximum Compatibility -->
+  <!-- Ethers.js v5.7.2 CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   
@@ -64,7 +64,7 @@
       <div class="input-group">
         <input type="text" id="workerAddr" placeholder="Worker Wallet Address (0x...)">
         <input type="text" id="workerName" placeholder="Worker Name">
-        <input type="number" id="dailyRate" step="0.001" placeholder="Daily Rate (in ETH/USDC)">
+        <input type="number" id="dailyRate" step="0.001" placeholder="Daily Rate (in USDC)">
       </div>
       <button class="btn btn-primary" onclick="addWorker()">Add Worker</button>
     </div>
@@ -83,7 +83,6 @@
   </div>
 
   <script>
-    // ⚠️ আপনার ডিপ্লয় করা 스마트 কন্ট্রাক্টের অ্যাড্রেসটি এখানে বসান:
     const CONTRACT_ADDRESS = "0xF0653663525B0DeFF947B0B578402D59a8b90928";
 
     const CONTRACT_ABI = [
@@ -99,7 +98,6 @@
     async function connectWallet() {
       if (typeof window.ethereum !== 'undefined') {
         try {
-          // Request account access
           const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
           provider = new ethers.providers.Web3Provider(window.ethereum);
           signer = provider.getSigner();
@@ -120,7 +118,6 @@
 
     async function addWorker() {
       if (!contract) return alert("Please connect wallet first!");
-      
       const addr = document.getElementById("workerAddr").value;
       const name = document.getElementById("workerName").value;
       const rateInput = document.getElementById("dailyRate").value;
@@ -128,7 +125,8 @@
       if(!addr || !name || !rateInput) return alert("Please fill all fields!");
 
       try {
-        const rateInWei = ethers.utils.parseEther(rateInput);
+        // ✅ USDC 6 Decimals এর জন্য parseUnits(..., 6)
+        const rateInWei = ethers.utils.parseUnits(rateInput, 6);
         updateStatus("Sending transaction to add worker...");
         
         const tx = await contract.addWorker(addr, name, rateInWei);
@@ -148,7 +146,7 @@
         const tx = await contract.payAllWorkers();
         await tx.wait();
         
-        updateStatus("All workers paid successfully! Tx: " + tx.hash);
+        updateStatus("All active workers paid successfully! Tx: " + tx.hash);
       } catch (error) {
         updateStatus("Payment failed: " + (error.reason || error.message));
       }
