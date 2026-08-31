@@ -3,55 +3,89 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Factory Payroll App</title>
-  <!-- Ethers.js v6 CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+  <title>Factory Payroll Dashboard</title>
+  <!-- Ethers.js v5.7.2 CDN for Maximum Compatibility -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
   <style>
-    body { font-family: Arial, sans-serif; margin: 30px; background: #f4f6f9; }
-    .card { background: #fff; padding: 20px; border-radius: 8px; max-width: 500px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    h2, h3 { color: #333; margin-top: 0; }
-    input, button { display: block; width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; }
-    button { background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-    button:hover { background: #0056b3; }
-    .status { word-break: break-all; color: #555; background: #e9ecef; padding: 10px; border-radius: 4px; }
+    :root {
+      --bg-color: #0b0f19;
+      --card-bg: #151c2c;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --success: #10b981;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: rgba(255, 255, 255, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    .container { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 20px; }
+    .header { text-align: center; }
+    .header h1 { font-size: 26px; font-weight: 700; color: #fff; }
+    .header p { color: var(--text-muted); font-size: 14px; margin-top: 4px; }
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+    .card h2 { font-size: 16px; font-weight: 600; margin-bottom: 14px; color: var(--text); }
+    .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-success:hover { background: #059669; }
+    .wallet-info { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); margin-top: 12px; background: rgba(0,0,0,0.2); padding: 10px 12px; border-radius: 8px; }
+    .wallet-address { font-family: monospace; color: var(--text); font-weight: 600; }
+    .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+    input { width: 100%; padding: 12px; background: #0b0f19; border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; outline: none; }
+    input:focus { border-color: var(--accent); }
+    .status-box { font-size: 13px; padding: 12px; border-radius: 8px; background: rgba(0,0,0,0.2); border-left: 3px solid var(--accent); color: var(--text-muted); word-break: break-all; }
   </style>
 </head>
 <body>
 
-  <h2>🏭 Factory Payroll Dashboard</h2>
+  <div class="container">
+    <div class="header">
+      <h1>🏭 Factory Payroll</h1>
+      <p>Decentralized Worker Payment System</p>
+    </div>
 
-  <!-- Wallet Connection -->
-  <div class="card">
-    <button id="connectBtn" onclick="connectWallet()">Connect MetaMask</button>
-    <p>Connected Address: <span id="userAddress">Not Connected</span></p>
-  </div>
+    <!-- Wallet Section -->
+    <div class="card">
+      <button id="connectBtn" class="btn btn-primary" onclick="connectWallet()">Connect MetaMask</button>
+      <div class="wallet-info">
+        <span>Connected:</span>
+        <span id="userAddress" class="wallet-address">Not Connected</span>
+      </div>
+    </div>
 
-  <!-- Add Worker -->
-  <div class="card">
-    <h3>Add New Worker</h3>
-    <input type="text" id="workerAddr" placeholder="Worker Wallet Address (0x...)">
-    <input type="text" id="workerName" placeholder="Worker Name">
-    <input type="number" id="dailyRate" placeholder="Daily Rate (in ETH/USDC)">
-    <button onclick="addWorker()">Add Worker</button>
-  </div>
+    <!-- Add Worker Section -->
+    <div class="card">
+      <h2>Add New Worker</h2>
+      <div class="input-group">
+        <input type="text" id="workerAddr" placeholder="Worker Wallet Address (0x...)">
+        <input type="text" id="workerName" placeholder="Worker Name">
+        <input type="number" id="dailyRate" step="0.001" placeholder="Daily Rate (in ETH/USDC)">
+      </div>
+      <button class="btn btn-primary" onclick="addWorker()">Add Worker</button>
+    </div>
 
-  <!-- Execute Payroll -->
-  <div class="card">
-    <h3>Execute Payroll</h3>
-    <button onclick="payAllWorkers()" style="background: #28a745;">Pay All Workers Now</button>
-  </div>
+    <!-- Execute Payroll Section -->
+    <div class="card">
+      <h2>Execute Payroll</h2>
+      <button class="btn btn-success" onclick="payAllWorkers()">Pay All Active Workers</button>
+    </div>
 
-  <!-- Transaction Status -->
-  <div class="card">
-    <h3>Status Log</h3>
-    <div id="status" class="status">Ready</div>
+    <!-- Status Log -->
+    <div class="card">
+      <h2>Transaction Log</h2>
+      <div id="status" class="status-box">Ready</div>
+    </div>
   </div>
 
   <script>
-    // Replace with your deployed smart contract address:
+    // ⚠️ আপনার ডিপ্লয় করা 스마트 কন্ট্রাক্টের অ্যাড্রেসটি এখানে বসান:
     const CONTRACT_ADDRESS = "0x79c7F03c774D861f89FEeC281aC54f68d33d1A1A";
 
-    // Smart Contract ABI
     const CONTRACT_ABI = [
       "function addWorker(address _workerAddress, string memory _name, uint256 _dailyRate) external",
       "function payAllWorkers() external",
@@ -62,28 +96,28 @@
     let signer;
     let contract;
 
-    // 1. Connect MetaMask
     async function connectWallet() {
-      if (window.ethereum) {
+      if (typeof window.ethereum !== 'undefined') {
         try {
-          provider = new ethers.BrowserProvider(window.ethereum);
-          signer = await provider.getSigner();
-          const address = await signer.getAddress();
+          // Request account access
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          provider = new ethers.providers.Web3Provider(window.ethereum);
+          signer = provider.getSigner();
           
-          document.getElementById("userAddress").innerText = address;
+          const account = accounts[0];
+          document.getElementById("userAddress").innerText = account.substring(0, 6) + "..." + account.substring(account.length - 4);
           document.getElementById("connectBtn").innerText = "Wallet Connected";
           
           contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
           updateStatus("Wallet connected successfully!");
         } catch (error) {
-          updateStatus("Error connecting wallet: " + error.message);
+          updateStatus("Connection Error: " + error.message);
         }
       } else {
-        alert("Please install MetaMask extension in your browser!");
+        alert("MetaMask is not installed. Please install MetaMask to use this app!");
       }
     }
 
-    // 2. Add New Worker
     async function addWorker() {
       if (!contract) return alert("Please connect wallet first!");
       
@@ -91,20 +125,21 @@
       const name = document.getElementById("workerName").value;
       const rateInput = document.getElementById("dailyRate").value;
 
+      if(!addr || !name || !rateInput) return alert("Please fill all fields!");
+
       try {
-        const rateInWei = ethers.parseEther(rateInput);
+        const rateInWei = ethers.utils.parseEther(rateInput);
         updateStatus("Sending transaction to add worker...");
         
         const tx = await contract.addWorker(addr, name, rateInWei);
         await tx.wait();
         
-        updateStatus("Worker added successfully! Tx Hash: " + tx.hash);
+        updateStatus("Worker added successfully! Tx: " + tx.hash);
       } catch (error) {
-        updateStatus("Failed to add worker: " + error.message);
+        updateStatus("Failed to add worker: " + (error.reason || error.message));
       }
     }
 
-    // 3. Batch Payment
     async function payAllWorkers() {
       if (!contract) return alert("Please connect wallet first!");
 
@@ -113,9 +148,9 @@
         const tx = await contract.payAllWorkers();
         await tx.wait();
         
-        updateStatus("All active workers paid successfully! Tx Hash: " + tx.hash);
+        updateStatus("All workers paid successfully! Tx: " + tx.hash);
       } catch (error) {
-        updateStatus("Payment failed: " + error.message);
+        updateStatus("Payment failed: " + (error.reason || error.message));
       }
     }
 
