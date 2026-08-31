@@ -6,7 +6,7 @@ contract FactoryPayroll {
 
     struct Worker {
         string name;
-        uint256 dailyRate;
+        uint256 dailyRate; // Value in Wei / 6-decimal units
         bool isActive;
         uint256 lastPaidTime;
     }
@@ -40,6 +40,7 @@ contract FactoryPayroll {
         emit WorkerAdded(_workerAddress, _name, _dailyRate);
     }
 
+    // কন্ট্রাক্টে সরাসরি USDC ডিপোজিট নেওয়ার জন্য
     receive() external payable {}
 
     function payAllWorkers() external onlyOwner {
@@ -49,12 +50,12 @@ contract FactoryPayroll {
 
             if (worker.isActive) {
                 uint256 payAmount = worker.dailyRate;
-                require(address(this).balance >= payAmount, "Insufficient contract balance");
+                require(address(this).balance >= payAmount, "Insufficient USDC balance in contract");
 
                 worker.lastPaidTime = block.timestamp;
                 
                 (bool success, ) = payable(workerAddr).call{value: payAmount}("");
-                require(success, "Transfer failed");
+                require(success, "USDC Payment transfer failed");
 
                 emit WorkerPaid(workerAddr, payAmount);
             }
